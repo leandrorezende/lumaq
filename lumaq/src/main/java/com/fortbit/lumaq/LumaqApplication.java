@@ -10,4 +10,5 @@ public class LumaqApplication {
 		SpringApplication.run(LumaqApplication.class, args);
 	}
 
+	
 }
