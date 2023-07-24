@@ -1,0 +1,51 @@
+version: '2.12.2'
+
+networks:
+  intranet:
+    name: intranet
+
+volumes:
+  postgres-data:
+    driver: local
+  postgres-logs:
+    driver: local
+  app-logs:
+    driver: local
+
+services:
+  lumaq-server:
+    build:
+      context: ./lumaq
+      dockerfile: Dockerfile
+    image: ${LUMAQ_IMAGE_NAME}
+    container_name: ${LUMAQ_CONTAINER_NAME}
+    networks:
+      - intranet
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://${POSTGRES_HOST}:${POSTGRES_PORT}/${POSTGRES_NAME}
+      - SPRING_DATASOURCE_USERNAME=${POSTGRES_USER}
+      - SPRING_DATASOURCE_PASSWORD=${POSTGRES_PASSWORD}
+      - SPRING_JPA_HIBERNATE_DDL_AUTO=update
+    ports:
+      - 8080:8080
+    depends_on:
+      - db-postgres
+
+  db-postgres:
+    build:
+      context: ./postgres
+      dockerfile: Dockerfile
+    image: ${PG_IMAGE_NAME}
+    container_name: ${PG_CONTAINER_NAME}
+    networks:
+      - intranet
+    environment:
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+    ports:
+      - 5432:5432
+    restart: unless-stopped
+    volumes:
+      - postgres-logs:/var/log/postgresql
+      - postgres-data:/var/lib/postgresql/data
+
